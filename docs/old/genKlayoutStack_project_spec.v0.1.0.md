@@ -1,13 +1,12 @@
-# Project: <Working Name>
+# Project: genKlayoutStack
 
 ## 0. Meta & Status
 
-- **Owner:** <your name>
-- **Doc status:** Draft / In progress / Stable
-- **Last updated:** <YYYY-MM-DD>
+- **Owner:** Paul Gutwin
+- **Doc status:** Draft 
+- **Last updated:** <2026-03-20>
 - **Change log:**
-  - <YYYY-MM-DD> – Initial draft
-  - <YYYY-MM-DD> – Updated <section> with <change>
+  - <2026-03-20> – Initial draft
 
 ---
 
@@ -15,32 +14,43 @@
 
 ### 1.1 Problem Statement
 
-What problem does this project solve? For whom? In what context?
+When working with Klayout, there's are times when one needs to modify the enablement files,
+specifically the layer definition file. Klayout itself is fine for making small adjustments,
+but when one is working on a complex project and wishes to visualize everything in 3D,
+keeping the layer map and 3D (2.5D in Klayout terms) expansion macro in sync, things get complicated.
 
-> One or two paragraphs that someone technical can read and say “got it.”
+What is needed is a tool that can create a consistant set of enablement (.lyp and 2.5D script) from a
+CSV file and vise versa. A nice-to-have addition would be a way for the user to modify 
+
+A very critical note: the 2.5D layer thinknesses and sequencing are meta data that are not (currently) contained
+in the .lyp file. This implies that while the CSV and .lyp files are roughly peers in terms of ground
+truth, generation of the 2.5D Ruby script requires additional details not included in layer map file. Two possible options are open:
+1) Include layer thickness and sequencing information as (commented) meta data in the .lyp file
+2) Force the CSV file to be the cannonical representation of the technology, requiring the specification of thickness and sequence to generate the 2.5D Ruby script.
+
 
 ### 1.2 Goals
 
 Concrete, testable goals.
 
-- G1: <e.g., Parse X, Y, Z formats into a unified IR>
-- G2: <e.g., Provide APIs to run analyses A, B, C>
-- G3: <e.g., Support datasets up to N elements within M seconds>
+- G1: Parse a CSV file and produce Klayout layer file (.lyp - XML format), and 2.5D Script (Ruby script)
+- G2: Read a Klayout layer map file (.lyp) and generate CSV file
+- G3: Handle poorly formed CSV files, e.g. blank cell information (e.g. missing color information) or completely missing columns (e.g. thickness)
+- G4: Missing information should be assigned based on pre-defined standards or patterns, some of which can be controlled on the command line
+- FG1: Future goal - For v2, include a color and stipple choosing tool (gui)
 
 ### 1.3 Non-Goals
 
-Stuff you are explicitly **not** doing (this keeps scope creep in check).
-
-- NG1: <e.g., No GUI in v1>
-- NG2: <e.g., No distributed / cluster support>
+- NG1: Command line only for v1. GUI only for v2.
 
 ### 1.4 Success Criteria
 
 How do you know this project is “good enough” for v1?
 
-- Performance targets
-- Feature coverage
-- Quality / test coverage targets
+- Round trip conversion produces identical results: CSV -> .lyp -> CSV AND .lyp -> CSV -> .lyp
+- Round trip conversion with missing information is stable, converges on identical results
+- All core functions have unit test coverage
+- End-to-end functional tests
 
 ---
 
@@ -48,20 +58,25 @@ How do you know this project is “good enough” for v1?
 
 ### 2.1 Target Users
 
-- **Primary user(s):** <roles, e.g. “library developer”, “EDA researcher”>
-- **Secondary user(s):** <if any>
+- **Primary user(s):** Standard Cell Developers
 
 ### 2.2 Key Use Cases
 
 For each use case, 3–7 bullet steps is enough.
 
-- **UC1: <Name>**
-  - Step 1: User does …
-  - Step 2: Tool responds …
-  - Output: …
+- **UC1: Generate layer file from scratch**
+  - Step 1: User creates a priliminary CSV definition of layers
+  - Step 2: Tool responds with verbose description of issues with CSV - missing columns or fields, assumptions or defaults applied, etc.
+  - Output: Tool attempts to produce requested output
 
-- **UC2: <Name>**
-  - …
+- **UC2: Modify layer file from input .lyp file**
+  - Step 1: User provides tool with existing (functional) .lyp file, tool produces CSV output file
+  - Step 2: User modifies CSV file
+  - Output: Tool generates new .lyp conforming to CSV file
+  
+- **UC3: Generate 2.5D Script file***
+  - Step 1: User provides existing CSV or .lyp file as input
+  - Output: Tool generates 2.5D (Ruby) script
 
 ### 2.3 Example Scenarios
 

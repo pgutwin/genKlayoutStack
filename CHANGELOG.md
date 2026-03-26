@@ -14,10 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-## [n/a] 2 January 1956
+## [n/a] 26 March 2026
 
 ### Added
-- Initial version 
+- Spec now v0_4_1
+
 
 
 
