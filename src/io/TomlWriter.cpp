@@ -60,7 +60,8 @@ std::expected<void, GksError> writeToml(const LayerStack& stack, const std::stri
         out << std::format("valid        = {}\n", boolStr(d.valid));
         out << std::format("transparent  = {}\n", boolStr(d.transparent));
 
-        // PhysicalProps — always emit z_start_nm explicitly if present
+        // PhysicalProps — always emit z_start_nm explicitly if present;
+        // emit commented placeholders when absent so the user knows what to fill in
         if (entry.physical) {
             const auto& p = *entry.physical;
             out << std::format("z_start_nm   = {:.1f}\n", p.z_start_nm);
@@ -68,6 +69,10 @@ std::expected<void, GksError> writeToml(const LayerStack& stack, const std::stri
             out << std::format("material     = \"{}\"\n", p.material);
             if (p.layer_expression)
                 out << std::format("layer_expression = \"{}\"\n", *p.layer_expression);
+        } else {
+            out << "# z_start_nm   = 0.0    # fill in: z start position (nm, signed)\n";
+            out << "# thickness_nm = 0.0    # fill in: layer thickness (nm)\n";
+            out << "# material     = \"\"     # fill in: material name\n";
         }
     }
 

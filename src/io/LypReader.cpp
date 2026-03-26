@@ -112,7 +112,7 @@ std::expected<LayerStack, GksError> readLyp(const std::string& path) {
         } else {
             entry.name = "";
         }
-        entry.purpose = "";
+        entry.purpose = "drawing";   // .lyp has no purpose field; default matches buildStack()
 
         // DisplayProps
         DisplayProps& d = entry.display;

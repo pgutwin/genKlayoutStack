@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(genKlayoutStack LANGUAGES CXX)
+project(genKlayoutStack VERSION 0.4.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -58,6 +58,13 @@ target_include_directories(gks_lib PUBLIC include ${tl_expected_SOURCE_DIR}/incl
 target_link_libraries(gks_lib PUBLIC tomlplusplus::tomlplusplus pugixml::pugixml)
 target_compile_features(gks_lib PUBLIC cxx_std_20)
 
+# Generate version header
+configure_file(
+  ${CMAKE_SOURCE_DIR}/include/gks/version.hpp.in
+  ${CMAKE_BINARY_DIR}/include/gks/version.hpp
+  @ONLY
+)
+
 # gks executable
 add_executable(gks
   src/cli/main.cpp
@@ -65,6 +72,7 @@ add_executable(gks
   src/cli/cmd_generate.cpp
   src/cli/cmd_validate.cpp
 )
+target_include_directories(gks PRIVATE ${CMAKE_BINARY_DIR}/include)
 target_link_libraries(gks PRIVATE gks_lib)
 
 # Tests

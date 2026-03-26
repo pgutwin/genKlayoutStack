@@ -23,3 +23,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Phase 3 complete
 - Phase 4 complete
 - Phase 5 complete
+- Phase 6 complete
+- Initial testing looks good
