@@ -1,6 +1,8 @@
 #include "gtest/gtest.h"
 #include "gks/io/TomlReader.hpp"
 #include "gks/io/TomlWriter.hpp"
+#include "gks/io/LypReader.hpp"
+#include "gks/io/LypWriter.hpp"
 #include "gks/core/LayerStack.hpp"
 
 #include <filesystem>
@@ -123,4 +125,79 @@ TEST_F(TomlRoundtripTest, DisplayOnlyLayerRoundtrips) {
     const auto& label = stack2.layers[9];
     EXPECT_FALSE(label.physical.has_value());
     EXPECT_EQ(label.name, "label");
+}
+
+// ── Phase 4: asap7_stack.toml → LypWriter → LypReader → LayerStack ──────────
+
+class LypRoundtripTest : public ::testing::Test {
+protected:
+    void SetUp() override {
+        // Read TOML and build stack
+        auto r = gks::readToml(kFixturesDir + "/asap7_stack.toml");
+        ASSERT_TRUE(r.has_value()) << r.error().message;
+        auto br = gks::buildStack(r->tech_name, r->version, r->layers, r->defaults);
+        orig = std::move(br.stack);
+
+        // Write to .lyp
+        tmp_lyp = "/tmp/gks_roundtrip_lyp_test.lyp";
+        auto wr = gks::writeLyp(orig, tmp_lyp);
+        ASSERT_TRUE(wr.has_value()) << wr.error().message;
+
+        // Read back from .lyp
+        auto rr = gks::readLyp(tmp_lyp);
+        ASSERT_TRUE(rr.has_value()) << rr.error().message;
+        back = std::move(*rr);
+    }
+
+    void TearDown() override {
+        std::filesystem::remove(tmp_lyp);
+    }
+
+    gks::LayerStack orig;
+    gks::LayerStack back;
+    std::string     tmp_lyp;
+};
+
+TEST_F(LypRoundtripTest, LayerCountPreserved) {
+    EXPECT_EQ(back.layers.size(), orig.layers.size());
+}
+
+TEST_F(LypRoundtripTest, LayerKeysPreserved) {
+    for (size_t i = 0; i < orig.layers.size(); ++i) {
+        SCOPED_TRACE("layer index " + std::to_string(i));
+        EXPECT_EQ(back.layers[i].layer_num, orig.layers[i].layer_num);
+        EXPECT_EQ(back.layers[i].datatype,  orig.layers[i].datatype);
+        // name is preserved through lyp writer/reader
+        EXPECT_EQ(back.layers[i].name,      orig.layers[i].name);
+    }
+}
+
+TEST_F(LypRoundtripTest, DisplayPropsPreserved) {
+    for (size_t i = 0; i < orig.layers.size(); ++i) {
+        SCOPED_TRACE("layer index " + std::to_string(i));
+        const auto& d1 = orig.layers[i].display;
+        const auto& d2 = back.layers[i].display;
+        EXPECT_EQ(d2.fill_color,      d1.fill_color);
+        EXPECT_EQ(d2.frame_color,     d1.frame_color);
+        EXPECT_EQ(d2.dither_pattern,  d1.dither_pattern);
+        EXPECT_EQ(d2.line_style,      d1.line_style);
+        EXPECT_EQ(d2.visible,         d1.visible);
+        EXPECT_EQ(d2.valid,           d1.valid);
+        EXPECT_EQ(d2.transparent,     d1.transparent);
+        EXPECT_EQ(d2.fill_brightness, d1.fill_brightness);
+        EXPECT_EQ(d2.frame_brightness,d1.frame_brightness);
+        EXPECT_EQ(d2.width,           d1.width);
+        EXPECT_EQ(d2.marked,          d1.marked);
+        EXPECT_EQ(d2.xfill,           d1.xfill);
+        EXPECT_EQ(d2.animation,       d1.animation);
+        EXPECT_EQ(d2.expanded,        d1.expanded);
+    }
+}
+
+TEST_F(LypRoundtripTest, PhysicalPropsAbsentAfterLypReadback) {
+    // LypReader never populates physical props
+    for (size_t i = 0; i < back.layers.size(); ++i) {
+        SCOPED_TRACE("layer index " + std::to_string(i));
+        EXPECT_FALSE(back.layers[i].physical.has_value());
+    }
 }
