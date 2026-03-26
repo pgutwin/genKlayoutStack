@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Spec now v0_4_1
+- Included CLAUDE.md
 
 
 
