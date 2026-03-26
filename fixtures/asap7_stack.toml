@@ -1,0 +1,117 @@
+[stack]
+tech_name = "ASAP7"
+version   = "1.0.0"
+
+[stack.defaults]
+thickness_nm   = 36.0
+fill_alpha     = 128
+material       = "dielectric"
+dither_pattern = 9
+line_style     = -1
+
+# ── Backside layers (negative z) ──────────────────────────────────────────────
+
+[[layer]]
+name           = "substrate"
+layer_num      = 0
+datatype       = 0
+purpose        = "drawing"
+fill_color     = "#888888"
+frame_color    = "#444444"
+dither_pattern = 9
+z_start_nm     = -300.0
+thickness_nm   = 300.0
+material       = "silicon"
+
+[[layer]]
+name         = "bspdn"
+layer_num    = 1
+datatype     = 0
+purpose      = "drawing"
+fill_color   = "#AA5500"
+frame_color  = "#883300"
+dither_pattern = 5
+z_start_nm   = -150.0
+thickness_nm = 100.0
+material     = "metal"
+
+# ── Front-side layers (positive z) ────────────────────────────────────────────
+
+[[layer]]
+name         = "diffusion"
+layer_num    = 2
+datatype     = 0
+purpose      = "drawing"
+fill_color   = "#FFAA00"
+frame_color  = "#CC8800"
+thickness_nm = 50.0
+material     = "silicon"
+
+[[layer]]
+name         = "poly"
+layer_num    = 3
+datatype     = 0
+purpose      = "drawing"
+fill_color   = "#FF0000"
+frame_color  = "#CC0000"
+material     = "polysilicon"
+
+# Parallel group: epi_contact and gate_contact share z_start_nm = 105.0
+[[layer]]
+name         = "epi_contact"
+layer_num    = 4
+datatype     = 0
+purpose      = "drawing"
+fill_color   = "#FF8800"
+frame_color  = "#CC6600"
+z_start_nm   = 105.0
+thickness_nm = 45.0
+material     = "tungsten"
+
+[[layer]]
+name         = "gate_contact"
+layer_num    = 5
+datatype     = 0
+purpose      = "drawing"
+fill_color   = "#AA4400"
+frame_color  = "#882200"
+z_start_nm   = 105.0
+thickness_nm = 45.0
+material     = "tungsten"
+
+[[layer]]
+name         = "m0"
+layer_num    = 6
+datatype     = 0
+purpose      = "drawing"
+fill_color   = "#0055FF"
+frame_color  = "#0033CC"
+material     = "metal"
+
+[[layer]]
+name         = "via0"
+layer_num    = 7
+datatype     = 0
+purpose      = "drawing"
+fill_color   = "#00AAFF"
+frame_color  = "#0088CC"
+material     = "tungsten"
+
+[[layer]]
+name         = "m1"
+layer_num    = 8
+datatype     = 0
+purpose      = "drawing"
+fill_color   = "#0088FF"
+frame_color  = "#0066CC"
+material     = "metal"
+
+# Display-only layer (no physical props)
+[[layer]]
+name         = "label"
+layer_num    = 9
+datatype     = 1
+purpose      = "label"
+fill_color   = "#FFFFFF"
+frame_color  = "#CCCCCC"
+visible      = true
