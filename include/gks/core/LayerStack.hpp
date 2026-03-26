@@ -1,7 +1,16 @@
 #pragma once
 
 #include <cstdint>
-#include <expected>
+// std::expected is C++23; provide it from tl::expected on C++20
+#if defined(__cpp_lib_expected)
+#  include <expected>
+#else
+#  include <tl/expected.hpp>
+   namespace std {
+       template<class T, class E> using expected   = tl::expected<T, E>;
+       template<class E>          using unexpected = tl::unexpected<E>;
+   }
+#endif
 #include <optional>
 #include <string>
 #include <string_view>

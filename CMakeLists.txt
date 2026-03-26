@@ -1,11 +1,20 @@
 cmake_minimum_required(VERSION 3.20)
 project(genKlayoutStack LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 include(FetchContent)
+
+# tl::expected — backport of std::expected for C++20
+FetchContent_Declare(
+  tl_expected
+  GIT_REPOSITORY https://github.com/TartanLlama/expected.git
+  GIT_TAG        v1.1.0
+)
+set(EXPECTED_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(tl_expected)
 
 # toml++
 FetchContent_Declare(
@@ -45,9 +54,9 @@ add_library(gks_lib
   src/io/ScriptReader.cpp
   src/io/ScriptWriter.cpp
 )
-target_include_directories(gks_lib PUBLIC include)
+target_include_directories(gks_lib PUBLIC include ${tl_expected_SOURCE_DIR}/include)
 target_link_libraries(gks_lib PUBLIC tomlplusplus::tomlplusplus pugixml::pugixml)
-target_compile_features(gks_lib PUBLIC cxx_std_23)
+target_compile_features(gks_lib PUBLIC cxx_std_20)
 
 # gks executable
 add_executable(gks
