@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="680" viewBox="0 0 680 460"
+     style="font-family: sans-serif; background: white;">
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M2 1L8 5L2 9" fill="none" stroke="#888" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+  <marker id="arrow-red" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M2 1L8 5L2 9" fill="none" stroke="#c0392b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+  <marker id="arrow-orange" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M2 1L8 5L2 9" fill="none" stroke="#e67e22" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+</defs>
+
+<!-- ── Column headers ── -->
+<text font-size="14" font-weight="600" x="120" y="28" text-anchor="middle" fill="#222">Case 1: accumulated</text>
+<text font-size="12" x="120" y="44" text-anchor="middle" fill="#666">z_start_nm omitted</text>
+<text font-size="14" font-weight="600" x="350" y="28" text-anchor="middle" fill="#222">Case 2: explicit override</text>
+<text font-size="12" x="350" y="44" text-anchor="middle" fill="#666">z_start_nm provided</text>
+<text font-size="14" font-weight="600" x="570" y="28" text-anchor="middle" fill="#222">Case 3: parallel group</text>
+<text font-size="12" x="570" y="44" text-anchor="middle" fill="#666">same z_start_nm on two layers</text>
+
+<!-- Dividers -->
+<line x1="235" y1="20" x2="235" y2="440" stroke="#ccc" stroke-width="0.5" stroke-dasharray="4 4"/>
+<line x1="455" y1="20" x2="455" y2="440" stroke="#ccc" stroke-width="0.5" stroke-dasharray="4 4"/>
+
+<!-- ═══════════ CASE 1: Accumulated ═══════════ -->
+<line x1="44" y1="80" x2="44" y2="405" stroke="#aaa" stroke-width="0.5" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+<text font-size="11" x="38" y="405" text-anchor="end" fill="#888">z=0</text>
+<text font-size="11" x="38" y="83" text-anchor="end" fill="#888">+z</text>
+
+<!-- Layer A -->
+<rect x="55" y="340" width="140" height="58" rx="4" fill="#d5f0ea" stroke="#1d9e75" stroke-width="0.5"/>
+<text font-size="14" font-weight="500" x="125" y="365" text-anchor="middle" fill="#085041">layer_a</text>
+<text font-size="11" x="125" y="382" text-anchor="middle" fill="#0f6e56">thickness_nm = 58</text>
+
+<!-- Layer B -->
+<rect x="55" y="268" width="140" height="68" rx="4" fill="#d6e8f9" stroke="#185fa5" stroke-width="0.5"/>
+<text font-size="14" font-weight="500" x="125" y="294" text-anchor="middle" fill="#0c447c">layer_b</text>
+<text font-size="11" x="125" y="311" text-anchor="middle" fill="#185fa5">thickness_nm = 68</text>
+
+<!-- Layer C -->
+<rect x="55" y="212" width="140" height="52" rx="4" fill="#faeeda" stroke="#ba7517" stroke-width="0.5"/>
+<text font-size="14" font-weight="500" x="125" y="235" text-anchor="middle" fill="#633806">layer_c</text>
+<text font-size="11" x="125" y="252" text-anchor="middle" fill="#854f0b">thickness_nm = 52</text>
+
+<!-- High-water rising annotation -->
+<line x1="202" y1="395" x2="202" y2="214" stroke="#c0392b" stroke-width="1" stroke-dasharray="3 2" marker-end="url(#arrow-red)"/>
+<text font-size="11" x="222" y="276" text-anchor="start" fill="#c0392b">high_water</text>
+<text font-size="11" x="222" y="290" text-anchor="start" fill="#c0392b">advances</text>
+<text font-size="11" x="222" y="304" text-anchor="start" fill="#c0392b">each layer</text>
+
+<text font-size="11" x="125" y="422" text-anchor="middle" fill="#555">no z_start_nm → stacks on top</text>
+<text font-size="11" x="125" y="437" text-anchor="middle" fill="#555">of whatever came before</text>
+
+<!-- ═══════════ CASE 2: Explicit ═══════════ -->
+<line x1="264" y1="80" x2="264" y2="405" stroke="#aaa" stroke-width="0.5" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+<text font-size="11" x="258" y="405" text-anchor="end" fill="#888">z=0</text>
+<text font-size="11" x="258" y="83" text-anchor="end" fill="#888">+z</text>
+
+<!-- Layer D (base, accumulated) -->
+<rect x="275" y="340" width="140" height="52" rx="4" fill="#d5f0ea" stroke="#1d9e75" stroke-width="0.5"/>
+<text font-size="14" font-weight="500" x="345" y="362" text-anchor="middle" fill="#085041">layer_d</text>
+<text font-size="11" x="345" y="379" text-anchor="middle" fill="#0f6e56">thickness_nm = 52</text>
+
+<!-- Gap zone -->
+<rect x="275" y="280" width="140" height="56" rx="2" fill="#fff8f0" stroke="#e67e22" stroke-width="0.5" stroke-dasharray="4 2"/>
+<text font-size="11" x="345" y="312" text-anchor="middle" fill="#e67e22">gap (warning emitted)</text>
+
+<!-- Gap size indicator -->
+<line x1="420" y1="340" x2="420" y2="282" stroke="#e67e22" stroke-width="0.7" marker-start="url(#arrow-orange)" marker-end="url(#arrow-orange)"/>
+<text font-size="10" x="428" y="314" text-anchor="start" fill="#e67e22">+28nm</text>
+<text font-size="10" x="428" y="327" text-anchor="start" fill="#e67e22">gap</text>
+
+<!-- Layer E (explicit override) -->
+<rect x="275" y="206" width="140" height="70" rx="4" fill="#faece7" stroke="#993c1d" stroke-width="0.5"/>
+<text font-size="14" font-weight="500" x="345" y="232" text-anchor="middle" fill="#4a1b0c">layer_e</text>
+<text font-size="11" x="345" y="249" text-anchor="middle" fill="#993c1d">z_start_nm = 200</text>
+<text font-size="11" x="345" y="266" text-anchor="middle" fill="#993c1d">thickness_nm = 70</text>
+
+<!-- Explicit anchor arrow -->
+<line x1="256" y1="206" x2="272" y2="206" stroke="#c0392b" stroke-width="1.2" marker-end="url(#arrow-red)"/>
+<text font-size="11" x="258" y="198" text-anchor="end" fill="#c0392b">200</text>
+
+<text font-size="11" x="345" y="422" text-anchor="middle" fill="#555">z_start_nm present → placed</text>
+<text font-size="11" x="345" y="437" text-anchor="middle" fill="#555">at that exact position</text>
+
+<!-- ═══════════ CASE 3: Parallel group ═══════════ -->
+<line x1="468" y1="80" x2="468" y2="405" stroke="#aaa" stroke-width="0.5" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+<text font-size="11" x="462" y="405" text-anchor="end" fill="#888">z=0</text>
+<text font-size="11" x="462" y="83" text-anchor="end" fill="#888">+z</text>
+
+<!-- Base layer (accumulated) -->
+<rect x="478" y="330" width="180" height="50" rx="4" fill="#d5f0ea" stroke="#1d9e75" stroke-width="0.5"/>
+<text font-size="14" font-weight="500" x="568" y="352" text-anchor="middle" fill="#085041">layer_f</text>
+<text font-size="11" x="568" y="368" text-anchor="middle" fill="#0f6e56">thickness_nm = 50</text>
+
+<!-- Parallel group shared z_start line -->
+<line x1="468" y1="244" x2="660" y2="244" stroke="#c0392b" stroke-width="0.8" stroke-dasharray="4 2"/>
+<text font-size="11" x="564" y="238" text-anchor="middle" fill="#c0392b">shared z_start_nm = 380</text>
+
+<!-- epi_contact (left) -->
+<rect x="478" y="244" width="84" height="82" rx="4" fill="#faece7" stroke="#993c1d" stroke-width="0.5"/>
+<text font-size="13" font-weight="500" x="520" y="276" text-anchor="middle" fill="#4a1b0c">epi_</text>
+<text font-size="13" font-weight="500" x="520" y="292" text-anchor="middle" fill="#4a1b0c">contact</text>
+<text font-size="11" x="520" y="312" text-anchor="middle" fill="#993c1d">h=82nm</text>
+
+<!-- gate_contact (right) -->
+<rect x="574" y="244" width="84" height="82" rx="4" fill="#eeedfe" stroke="#534ab7" stroke-width="0.5"/>
+<text font-size="13" font-weight="500" x="616" y="276" text-anchor="middle" fill="#26215c">gate_</text>
+<text font-size="13" font-weight="500" x="616" y="292" text-anchor="middle" fill="#26215c">contact</text>
+<text font-size="11" x="616" y="312" text-anchor="middle" fill="#534ab7">h=82nm</text>
+
+<!-- Layer above — accumulated from high_water of the group -->
+<rect x="478" y="188" width="180" height="52" rx="4" fill="#d6e8f9" stroke="#185fa5" stroke-width="0.5"/>
+<text font-size="14" font-weight="500" x="568" y="210" text-anchor="middle" fill="#0c447c">m0</text>
+<text font-size="11" x="568" y="226" text-anchor="middle" fill="#185fa5">accumulated from high_water</text>
+
+<text font-size="11" x="568" y="422" text-anchor="middle" fill="#555">both layers get z_start_nm = 380</text>
+<text font-size="11" x="568" y="437" text-anchor="middle" fill="#555">high_water advances past both</text>
+</svg>

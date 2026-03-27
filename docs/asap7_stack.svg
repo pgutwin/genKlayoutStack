@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="680" viewBox="0 0 680 580"
+     style="font-family: sans-serif; background: white;">
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M2 1L8 5L2 9" fill="none" stroke="#888" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+</defs>
+
+<!-- Title -->
+<text font-size="15" font-weight="600" x="240" y="26" text-anchor="middle" fill="#222">Worked example: ASAP7-like stack</text>
+
+<!-- z-axis -->
+<line x1="72" y1="48" x2="72" y2="530" stroke="#aaa" stroke-width="0.7" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+<text font-size="11" x="66" y="52" text-anchor="end" fill="#888">+z</text>
+<text font-size="11" x="66" y="528" text-anchor="end" fill="#888">−z</text>
+
+<!-- Z tick labels (nm) -->
+<line x1="68" y1="90"  x2="76" y2="90"  stroke="#aaa" stroke-width="0.5"/>
+<text font-size="10" x="64" y="94"  text-anchor="end" fill="#888">+175</text>
+<line x1="68" y1="124" x2="76" y2="124" stroke="#aaa" stroke-width="0.5"/>
+<text font-size="10" x="64" y="128" text-anchor="end" fill="#888">+139</text>
+<line x1="68" y1="171" x2="76" y2="171" stroke="#aaa" stroke-width="0.5"/>
+<text font-size="10" x="64" y="175" text-anchor="end" fill="#888">+103</text>
+<line x1="68" y1="218" x2="76" y2="218" stroke="#aaa" stroke-width="0.5"/>
+<text font-size="10" x="64" y="222" text-anchor="end" fill="#888">+59</text>
+<line x1="68" y1="256" x2="76" y2="256" stroke="#aaa" stroke-width="0.5"/>
+<text font-size="10" x="64" y="260" text-anchor="end" fill="#888">+44</text>
+<line x1="68" y1="278" x2="76" y2="278" stroke="#aaa" stroke-width="0.5"/>
+<text font-size="10" x="64" y="282" text-anchor="end" fill="#888">+22</text>
+<line x1="68" y1="300" x2="76" y2="300" stroke="#aaa" stroke-width="0.7"/>
+<text font-size="11" font-weight="600" x="64" y="304" text-anchor="end" fill="#c0392b">0</text>
+
+<!-- Bonding plane -->
+<line x1="72" y1="300" x2="448" y2="300" stroke="#c0392b" stroke-width="1" stroke-dasharray="6 3"/>
+<text font-size="11" font-weight="500" x="452" y="304" fill="#c0392b">bonding plane  z = 0</text>
+
+<!-- ── LAYERS (y=300 is z=0; scale ~0.471px/nm for top section) ── -->
+
+<!-- m1: z=[139,175], 36nm → y=[90,124] -->
+<rect x="80" y="90" width="240" height="34" rx="3" fill="#d6e8f9" stroke="#185fa5" stroke-width="0.5"/>
+<text font-size="13" font-weight="500" x="200" y="107" text-anchor="middle" dominant-baseline="central" fill="#0c447c">m1</text>
+
+<!-- v0: z=[103,139], 36nm → y=[124,171] NOTE slight compress -->
+<rect x="80" y="124" width="240" height="47" rx="3" fill="#e1e1e1" stroke="#5f5e5a" stroke-width="0.5"/>
+<text font-size="13" font-weight="500" x="200" y="148" text-anchor="middle" dominant-baseline="central" fill="#2c2c2a">v0</text>
+
+<!-- m0: z=[59,103], 44nm → y=[171,218] -->
+<rect x="80" y="171" width="240" height="47" rx="3" fill="#d5f0ea" stroke="#1d9e75" stroke-width="0.5"/>
+<text font-size="13" font-weight="500" x="200" y="195" text-anchor="middle" dominant-baseline="central" fill="#085041">m0</text>
+
+<!-- epi_contact (left): z=[22,59], 37nm → y=[218,256] -->
+<rect x="80" y="218" width="116" height="38" rx="3" fill="#faece7" stroke="#993c1d" stroke-width="0.5"/>
+<text font-size="12" font-weight="500" x="138" y="234" text-anchor="middle" dominant-baseline="central" fill="#4a1b0c">epi_ct</text>
+<text font-size="10" x="138" y="250" text-anchor="middle" dominant-baseline="central" fill="#993c1d">z=22nm</text>
+
+<!-- gate_contact (right): z=[22,59] → y=[218,256] -->
+<rect x="204" y="218" width="116" height="38" rx="3" fill="#eeedfe" stroke="#534ab7" stroke-width="0.5"/>
+<text font-size="12" font-weight="500" x="262" y="234" text-anchor="middle" dominant-baseline="central" fill="#26215c">gate_ct</text>
+<text font-size="10" x="262" y="250" text-anchor="middle" dominant-baseline="central" fill="#534ab7">z=22nm</text>
+
+<!-- Parallel group bracket -->
+<line x1="80" y1="213" x2="320" y2="213" stroke="#c0392b" stroke-width="0.7" stroke-dasharray="3 2"/>
+<text font-size="10" x="76" y="209" text-anchor="end" fill="#c0392b">parallel</text>
+<text font-size="10" x="76" y="221" text-anchor="end" fill="#c0392b">group</text>
+
+<!-- poly: z=[0,22], 22nm → y=[278,300] -->
+<rect x="80" y="278" width="240" height="22" rx="3" fill="#faeeda" stroke="#ba7517" stroke-width="0.5"/>
+<text font-size="12" font-weight="500" x="200" y="289" text-anchor="middle" dominant-baseline="central" fill="#633806">poly / gate oxide</text>
+
+<!-- substrate: z=[-300,0] → y=[300,420] (compressed: 300nm shown as 120px) -->
+<rect x="80" y="300" width="240" height="118" rx="3" fill="#e8e8e2" stroke="#5f5e5a" stroke-width="0.5"/>
+<text font-size="13" font-weight="500" x="200" y="352" text-anchor="middle" dominant-baseline="central" fill="#2c2c2a">substrate</text>
+<text font-size="11" x="200" y="372" text-anchor="middle" fill="#5f5e5a">z_start_nm = −300  (explicit)</text>
+<text font-size="11" x="200" y="388" text-anchor="middle" fill="#5f5e5a">thickness_nm = 300</text>
+
+<!-- Compression zigzag -->
+<polyline points="80,418 92,425 106,418 120,425 134,418 148,425 162,418 176,425 190,418 204,425 218,418 232,425 246,418 260,425 274,418 288,425 302,418 316,425 320,418"
+          fill="none" stroke="#aaa" stroke-width="1"/>
+<text font-size="10" x="200" y="443" text-anchor="middle" fill="#aaa">(not to scale)</text>
+
+<!-- ── Right column annotations ── -->
+<line x1="322" y1="107" x2="448" y2="107" stroke="#ccc" stroke-width="0.5" stroke-dasharray="2 2"/>
+<text font-size="12" font-weight="500" x="452" y="104" fill="#222">m1</text>
+<text font-size="11" x="452" y="118" fill="#555">accumulated · 36nm</text>
+
+<line x1="322" y1="148" x2="448" y2="148" stroke="#ccc" stroke-width="0.5" stroke-dasharray="2 2"/>
+<text font-size="12" font-weight="500" x="452" y="145" fill="#222">v0</text>
+<text font-size="11" x="452" y="159" fill="#555">accumulated · 36nm</text>
+
+<line x1="322" y1="195" x2="448" y2="195" stroke="#ccc" stroke-width="0.5" stroke-dasharray="2 2"/>
+<text font-size="12" font-weight="500" x="452" y="192" fill="#222">m0</text>
+<text font-size="11" x="452" y="206" fill="#555">accumulated · 44nm</text>
+
+<line x1="322" y1="240" x2="448" y2="240" stroke="#ccc" stroke-width="0.5" stroke-dasharray="2 2"/>
+<text font-size="12" font-weight="500" x="452" y="237" fill="#c0392b">parallel group</text>
+<text font-size="11" x="452" y="251" fill="#555">z_start_nm = 22 (explicit × 2)</text>
+<text font-size="11" x="452" y="265" fill="#555">thickness_nm = 37 each</text>
+
+<line x1="322" y1="289" x2="448" y2="289" stroke="#ccc" stroke-width="0.5" stroke-dasharray="2 2"/>
+<text font-size="12" font-weight="500" x="452" y="286" fill="#222">poly</text>
+<text font-size="11" x="452" y="300" fill="#555">accumulated from z=0 · 22nm</text>
+
+<line x1="322" y1="355" x2="448" y2="355" stroke="#ccc" stroke-width="0.5" stroke-dasharray="2 2"/>
+<text font-size="12" font-weight="500" x="452" y="352" fill="#222">substrate</text>
+<text font-size="11" x="452" y="366" fill="#555">z_start = −300 (explicit)</text>
+<text font-size="11" x="452" y="380" fill="#555">300nm · silicon</text>
+<text font-size="11" x="452" y="394" fill="#c0392b">below bonding plane</text>
+</svg>

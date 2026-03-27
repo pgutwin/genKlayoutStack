@@ -14,6 +14,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+## [n/a] 27 March 2026
+
+### Added
+- Documentation
+  - README, thickness/z_location "cheat sheet"
+
 ## [n/a] 26 March 2026
 
 ### Added

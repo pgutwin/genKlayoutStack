@@ -93,7 +93,7 @@ genKlayoutStack/
 
 ## Build System
 
-- CMake 3.20+, C++20, Ninja preferred
+- CMake 3.20+, C++20
 - Dependencies via `FetchContent`:
   - `toml++` (tomlplusplus) — TOML parsing/writing
   - `pugixml` — `.lyp` XML parsing/writing
@@ -101,7 +101,7 @@ genKlayoutStack/
 - Build and test commands:
 
 ```bash
-cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug
+cmake -B build -DCMAKE_BUILD_TYPE=Debug
 cmake --build build
 ctest --test-dir build --output-on-failure
 ```
