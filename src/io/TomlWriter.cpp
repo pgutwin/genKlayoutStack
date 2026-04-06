@@ -41,8 +41,12 @@ std::expected<void, GksError> writeToml(const LayerStack& stack, const std::stri
         writeOptionalDefaults(out, defs);
     }
 
-    // [[layer]]
-    for (const auto& entry : stack.layers) {
+    // [[layer]] — write in reverse of stack.layers order so that the written TOML
+    // follows the document convention (first [[layer]] = top of stack).
+    // buildStack reverses on read, so this produces identical layer ordering on
+    // round-trip: write-reverse → read → buildStack-reverse → original order.
+    for (auto it = stack.layers.rbegin(); it != stack.layers.rend(); ++it) {
+        const auto& entry = *it;
         out << "\n[[layer]]\n";
         out << std::format("name         = \"{}\"\n", entry.name);
         out << std::format("layer_num    = {}\n", entry.layer_num);

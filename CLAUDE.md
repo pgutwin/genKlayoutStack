@@ -149,6 +149,11 @@ gks::RawLayer        all-optional intermediate; used between readers and buildSt
 `z = 0` is the **bonding plane**. Negative z is below (substrate, backside metal, TSVs).
 Positive z is above (FEOL, BEOL).
 
+**Document order convention:** The first `[[layer]]` in the TOML represents the
+**top** of the physical stack; the last represents the **bottom**. `buildStack()`
+reverses the raw layer vector before the accumulation loop so that accumulation
+still runs bottom-to-top (lowest z first).
+
 In `buildStack()`, z is resolved by **hybrid accumulation**:
 - If `z_start_nm` is absent in `RawLayer` → use `high_water` (running max of z_top seen so far)
 - If `z_start_nm` is present → use it directly (explicit override)

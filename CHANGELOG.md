@@ -14,6 +14,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+## [n/a] 6 April 2026
+
+### Changed
+- TOML file now accumulates Z dimention in reverse order
+  - The last `[[layer]]` will be at the bottom of the z stack, and the first will be at the top
+
 ## [n/a] 27 March 2026
 
 ### Added

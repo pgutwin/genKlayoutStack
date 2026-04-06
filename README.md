@@ -84,23 +84,13 @@ thickness_nm = 36.0
 material     = "metal"
 
 [[layer]]
-name         = "poly"
-layer_num    = 3
+name         = "m0"
+layer_num    = 6
 datatype     = 0
-fill_color   = "#FFAA00"
-frame_color  = "#CC8800"
-thickness_nm = 22.0
-material     = "poly"
-
-[[layer]]
-name         = "epi_contact"
-layer_num    = 4
-datatype     = 0
-fill_color   = "#FF8800"
-frame_color  = "#CC6600"
-z_start_nm   = 22.0     # explicit: parallel group
-thickness_nm = 37.0
-material     = "tungsten"
+fill_color   = "#006600"
+frame_color  = "#004400"
+# z_start_nm omitted -- accumulated from high_water after parallel group
+# thickness_nm omitted -- inherited from [stack.defaults]
 
 [[layer]]
 name         = "gate_contact"
@@ -113,13 +103,23 @@ thickness_nm = 37.0
 material     = "tungsten"
 
 [[layer]]
-name         = "m0"
-layer_num    = 6
+name         = "epi_contact"
+layer_num    = 4
 datatype     = 0
-fill_color   = "#006600"
-frame_color  = "#004400"
-# z_start_nm omitted -- accumulated from high_water after parallel group
-# thickness_nm omitted -- inherited from [stack.defaults]
+fill_color   = "#FF8800"
+frame_color  = "#CC6600"
+z_start_nm   = 22.0     # explicit: parallel group
+thickness_nm = 37.0
+material     = "tungsten"
+
+[[layer]]
+name         = "poly"
+layer_num    = 3
+datatype     = 0
+fill_color   = "#FFAA00"
+frame_color  = "#CC8800"
+thickness_nm = 22.0
+material     = "poly"
 ```
 
 See [`docs/gks_z_stack_cheatsheet.md`](docs/gks_z_stack_cheatsheet.md) for

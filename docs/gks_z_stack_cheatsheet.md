@@ -191,8 +191,9 @@ frame_color = "#0022AA"
 
 ![ASAP7 stack cross-section](asap7_stack.svg)
 
-The following TOML produces the stack shown above. Read top-to-bottom in the
-TOML; the tool accumulates z from whatever `high_water` is at that point.
+The following TOML produces the stack shown above. The first `[[layer]]` is the
+**top** of the physical stack; the tool reverses document order and accumulates
+z from bottom to top.
 
 ```toml
 [stack]
@@ -202,65 +203,18 @@ version   = "1.0.0"
 [stack.defaults]
 thickness_nm = 36.0
 
-# ── Below bonding plane ───────────────────────────────────────────────────────
+# ── Above bonding plane (top of stack — listed first) ────────────────────────
 
 [[layer]]
-name         = "substrate"
-layer_num    = 0
+name         = "m1"
+layer_num    = 8
 datatype     = 0
-purpose      = "drawing"
-fill_color   = "#888888"
-frame_color  = "#555555"
-z_start_nm   = -300.0     # explicit: anchors the stack below z=0
-thickness_nm = 300.0
-material     = "silicon"
-
-# ── Above bonding plane ───────────────────────────────────────────────────────
-# high_water starts at 0.0 (substrate top = bonding plane)
-
-[[layer]]
-name         = "poly"
-layer_num    = 3
-datatype     = 0
-fill_color   = "#FFAA00"
-frame_color  = "#CC8800"
-# z_start_nm omitted → accumulated from high_water = 0.0
-thickness_nm = 22.0
-material     = "poly"
-# high_water now = 22.0
-
-[[layer]]
-name         = "epi_contact"
-layer_num    = 4
-datatype     = 0
-fill_color   = "#FF8800"
-frame_color  = "#CC6600"
-z_start_nm   = 22.0       # explicit: start of parallel group
-thickness_nm = 37.0
-material     = "tungsten"
-# high_water now = max(22.0, 22+37) = 59.0
-
-[[layer]]
-name         = "gate_contact"
-layer_num    = 5
-datatype     = 0
-fill_color   = "#8800FF"
-frame_color  = "#6600CC"
-z_start_nm   = 22.0       # explicit: same z → parallel group
-thickness_nm = 37.0
-material     = "tungsten"
-# high_water stays 59.0 (max doesn't change)
-
-[[layer]]
-name         = "m0"
-layer_num    = 6
-datatype     = 0
-fill_color   = "#006600"
-frame_color  = "#004400"
-# z_start_nm omitted → accumulated from high_water = 59.0
-thickness_nm = 44.0
+fill_color   = "#0055FF"
+frame_color  = "#0033CC"
+# z_start_nm omitted → accumulated from high_water = 139.0
+# thickness_nm omitted → inherited from [stack.defaults] = 36.0
 material     = "metal"
-# high_water now = 103.0
+# high_water now = 175.0
 
 [[layer]]
 name         = "v0"
@@ -274,15 +228,62 @@ material     = "tungsten"
 # high_water now = 139.0
 
 [[layer]]
-name         = "m1"
-layer_num    = 8
+name         = "m0"
+layer_num    = 6
 datatype     = 0
-fill_color   = "#0055FF"
-frame_color  = "#0033CC"
-# z_start_nm omitted → accumulated from high_water = 139.0
-# thickness_nm omitted → inherited from [stack.defaults] = 36.0
+fill_color   = "#006600"
+frame_color  = "#004400"
+# z_start_nm omitted → accumulated from high_water = 59.0
+thickness_nm = 44.0
 material     = "metal"
-# high_water now = 175.0
+# high_water now = 103.0
+
+[[layer]]
+name         = "gate_contact"
+layer_num    = 5
+datatype     = 0
+fill_color   = "#8800FF"
+frame_color  = "#6600CC"
+z_start_nm   = 22.0       # explicit: same z → parallel group
+thickness_nm = 37.0
+material     = "tungsten"
+# high_water stays 59.0 (max doesn't change)
+
+[[layer]]
+name         = "epi_contact"
+layer_num    = 4
+datatype     = 0
+fill_color   = "#FF8800"
+frame_color  = "#CC6600"
+z_start_nm   = 22.0       # explicit: start of parallel group
+thickness_nm = 37.0
+material     = "tungsten"
+# high_water now = max(22.0, 22+37) = 59.0
+
+[[layer]]
+name         = "poly"
+layer_num    = 3
+datatype     = 0
+fill_color   = "#FFAA00"
+frame_color  = "#CC8800"
+# z_start_nm omitted → accumulated from high_water = 0.0
+thickness_nm = 22.0
+material     = "poly"
+# high_water now = 22.0
+
+# ── Below bonding plane (bottom of stack — listed last) ───────────────────────
+# high_water starts at 0.0; substrate top = bonding plane
+
+[[layer]]
+name         = "substrate"
+layer_num    = 0
+datatype     = 0
+purpose      = "drawing"
+fill_color   = "#888888"
+frame_color  = "#555555"
+z_start_nm   = -300.0     # explicit: anchors the stack below z=0
+thickness_nm = 300.0
+material     = "silicon"
 ```
 
 ### How high_water advances through this stack
@@ -295,8 +296,9 @@ material     = "metal"
 
 **The order of `[[layer]]` stanzas matters** for accumulated layers.
 
-A layer without `z_start_nm` stacks on top of whatever precedes it in the
-file. Moving it changes its z position. Layers with explicit `z_start_nm`
+A layer without `z_start_nm` stacks on top of whatever follows it in the
+file (since document order is top-to-bottom but accumulation runs bottom-to-top).
+Moving it changes its z position. Layers with explicit `z_start_nm`
 are unaffected by reordering.
 
 ```

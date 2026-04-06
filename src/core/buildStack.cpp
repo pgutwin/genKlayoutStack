@@ -58,7 +58,11 @@ BuildResult buildStack(std::string              tech_name,
     // map: z_start_nm -> list of layer names that share it (explicit only)
     std::map<double, std::vector<std::string>> explicit_z_groups;
 
-    for (const auto& row : raw) {
+    // Convention: first [[layer]] in the TOML = top of physical stack.
+    // Reverse so accumulation runs bottom-to-top (lowest z first).
+    std::vector<RawLayer> ordered(raw.rbegin(), raw.rend());
+
+    for (const auto& row : ordered) {
         // layer_num is required
         if (!row.layer_num) {
             throw std::runtime_error(

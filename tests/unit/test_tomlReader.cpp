@@ -47,8 +47,8 @@ TEST_F(TomlReaderTest, Defaults) {
 }
 
 TEST_F(TomlReaderTest, SubstrateLayerFields) {
-    // Layer 0 = substrate
-    const auto& raw = res.layers[0];
+    // Layer 9 = substrate (last in file = bottom of stack)
+    const auto& raw = res.layers[9];
     ASSERT_TRUE(raw.layer_num.has_value());
     EXPECT_EQ(*raw.layer_num, 0);
     ASSERT_TRUE(raw.datatype.has_value());
@@ -76,8 +76,8 @@ TEST_F(TomlReaderTest, SubstrateLayerFields) {
 }
 
 TEST_F(TomlReaderTest, BacksideLayerNegativeZ) {
-    // Layer 1 = bspdn (second backside layer)
-    const auto& raw = res.layers[1];
+    // Layer 8 = bspdn (second-to-last in file = second backside layer)
+    const auto& raw = res.layers[8];
     ASSERT_TRUE(raw.z_start_nm.has_value());
     EXPECT_DOUBLE_EQ(*raw.z_start_nm, -150.0);
     ASSERT_TRUE(raw.thickness_nm.has_value());
@@ -85,16 +85,16 @@ TEST_F(TomlReaderTest, BacksideLayerNegativeZ) {
 }
 
 TEST_F(TomlReaderTest, AccumulatedLayerHasNoZStart) {
-    // Layer 2 = diffusion — no explicit z_start_nm
-    const auto& raw = res.layers[2];
+    // Layer 7 = diffusion — no explicit z_start_nm
+    const auto& raw = res.layers[7];
     EXPECT_FALSE(raw.z_start_nm.has_value());
     ASSERT_TRUE(raw.thickness_nm.has_value());
     EXPECT_DOUBLE_EQ(*raw.thickness_nm, 50.0);
 }
 
 TEST_F(TomlReaderTest, DefaultThicknessLayerHasNoThickness) {
-    // Layer 3 = poly — no explicit thickness_nm (uses document default)
-    const auto& raw = res.layers[3];
+    // Layer 6 = poly — no explicit thickness_nm (uses document default)
+    const auto& raw = res.layers[6];
     EXPECT_FALSE(raw.z_start_nm.has_value());
     EXPECT_FALSE(raw.thickness_nm.has_value());
     ASSERT_TRUE(raw.material.has_value());
@@ -102,9 +102,9 @@ TEST_F(TomlReaderTest, DefaultThicknessLayerHasNoThickness) {
 }
 
 TEST_F(TomlReaderTest, ParallelGroupBothHaveSameZStart) {
-    // Layers 4 and 5 = epi_contact and gate_contact — parallel group
-    const auto& epi  = res.layers[4];
-    const auto& gate = res.layers[5];
+    // Layers 4 and 5 = gate_contact and epi_contact — parallel group (top-first order)
+    const auto& gate = res.layers[4];
+    const auto& epi  = res.layers[5];
 
     ASSERT_TRUE(epi.z_start_nm.has_value());
     ASSERT_TRUE(gate.z_start_nm.has_value());
@@ -116,8 +116,8 @@ TEST_F(TomlReaderTest, ParallelGroupBothHaveSameZStart) {
 }
 
 TEST_F(TomlReaderTest, M0LayerNoZStartNoThickness) {
-    // Layer 6 = m0 — no z_start, no thickness (uses default)
-    const auto& raw = res.layers[6];
+    // Layer 3 = m0 — no z_start, no thickness (uses default)
+    const auto& raw = res.layers[3];
     EXPECT_FALSE(raw.z_start_nm.has_value());
     EXPECT_FALSE(raw.thickness_nm.has_value());
     ASSERT_TRUE(raw.name.has_value());
@@ -125,8 +125,8 @@ TEST_F(TomlReaderTest, M0LayerNoZStartNoThickness) {
 }
 
 TEST_F(TomlReaderTest, DisplayOnlyLayerHasNoPhysical) {
-    // Layer 9 = label — display only
-    const auto& raw = res.layers[9];
+    // Layer 0 = label — display only (first in file = top of stack)
+    const auto& raw = res.layers[0];
     EXPECT_FALSE(raw.z_start_nm.has_value());
     EXPECT_FALSE(raw.thickness_nm.has_value());
     EXPECT_FALSE(raw.material.has_value());

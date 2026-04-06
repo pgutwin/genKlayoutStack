@@ -39,10 +39,11 @@ static bool approxEq(double a, double b, double eps = 1e-6) {
 // ─── Test 1: Sequential stack accumulates from z=0 ───────────────────────────
 
 TEST(BuildStack, SequentialAccumulationFromZero) {
+    // First [[layer]] = top of stack; buildStack reverses before accumulation.
     std::vector<RawLayer> raw;
-    raw.push_back(makeRaw(1, 0, std::nullopt, 50.0,  "silicon",  "diffusion"));
+    raw.push_back(makeRaw(3, 0, std::nullopt, 40.0,  "dielectric","ild1"));   // top
     raw.push_back(makeRaw(2, 0, std::nullopt, 36.0,  "metal",    "m0"));
-    raw.push_back(makeRaw(3, 0, std::nullopt, 40.0,  "dielectric","ild1"));
+    raw.push_back(makeRaw(1, 0, std::nullopt, 50.0,  "silicon",  "diffusion")); // bottom
 
     auto result = buildStack("TEST", "1.0", raw);
     const auto& layers = result.stack.layers;
@@ -68,11 +69,12 @@ TEST(BuildStack, SequentialAccumulationFromZero) {
 // ─── Test 2: Sequential accumulation from negative z start ───────────────────
 
 TEST(BuildStack, SequentialAccumulationFromNegativeZ) {
+    // First [[layer]] = top; substrate is last (bottom).
     std::vector<RawLayer> raw;
-    // Explicit negative start
-    raw.push_back(makeRaw(1, 0, -300.0, 300.0, "silicon", "substrate"));
-    // Accumulated: should start at 0.0 (high_water after layer 0)
-    raw.push_back(makeRaw(2, 0, std::nullopt, 50.0, "silicon", "diffusion"));
+    // Accumulated: will start at 0.0 (high_water after substrate)
+    raw.push_back(makeRaw(2, 0, std::nullopt, 50.0, "silicon", "diffusion")); // top
+    // Explicit negative start — processed first after reversal
+    raw.push_back(makeRaw(1, 0, -300.0, 300.0, "silicon", "substrate"));     // bottom
 
     auto result = buildStack("TEST", "1.0", raw);
     const auto& layers = result.stack.layers;
@@ -91,14 +93,15 @@ TEST(BuildStack, SequentialAccumulationFromNegativeZ) {
 // ─── Test 3: Parallel group (same explicit z_start) ──────────────────────────
 
 TEST(BuildStack, ParallelGroup) {
+    // First [[layer]] = top; buildStack reverses before accumulation.
     std::vector<RawLayer> raw;
-    // First: z_start=0, thickness=50 -> high_water = 50
-    raw.push_back(makeRaw(1, 0, 0.0, 50.0, "silicon", "base"));
-    // Parallel group: both share z_start=105
-    raw.push_back(makeRaw(4, 0, 105.0, 45.0, "tungsten", "epi_contact"));
-    raw.push_back(makeRaw(5, 0, 105.0, 45.0, "tungsten", "gate_contact"));
-    // Next after parallel group: accumulated from high_water=150
+    // Top: accumulated from high_water=150 after parallel group
     raw.push_back(makeRaw(6, 0, std::nullopt, 36.0, "metal", "m0"));
+    // Parallel group: both share z_start=105
+    raw.push_back(makeRaw(5, 0, 105.0, 45.0, "tungsten", "gate_contact"));
+    raw.push_back(makeRaw(4, 0, 105.0, 45.0, "tungsten", "epi_contact"));
+    // Bottom: z_start=0, thickness=50 -> high_water = 50
+    raw.push_back(makeRaw(1, 0, 0.0, 50.0, "silicon", "base"));
 
     auto result = buildStack("TEST", "1.0", raw);
     const auto& layers = result.stack.layers;
@@ -119,12 +122,12 @@ TEST(BuildStack, ParallelGroup) {
 // ─── Test 4: Mixed stack spanning bonding plane ───────────────────────────────
 
 TEST(BuildStack, MixedStackSpanningBondingPlane) {
+    // First [[layer]] = top; substrate is last (processed first after reversal).
     std::vector<RawLayer> raw;
-    // Backside: explicit negative z
-    raw.push_back(makeRaw(1, 0, -300.0, 300.0, "silicon",  "substrate"));
-    // Above bonding plane: accumulated
+    raw.push_back(makeRaw(3, 0, std::nullopt, 36.0, "metal",   "m0"));       // top
     raw.push_back(makeRaw(2, 0, std::nullopt, 50.0, "silicon", "diffusion"));
-    raw.push_back(makeRaw(3, 0, std::nullopt, 36.0, "metal",   "m0"));
+    // Backside: explicit negative z — processed first after reversal
+    raw.push_back(makeRaw(1, 0, -300.0, 300.0, "silicon",  "substrate"));    // bottom
 
     auto result = buildStack("TEST", "1.0", raw);
     const auto& layers = result.stack.layers;
@@ -141,10 +144,11 @@ TEST(BuildStack, MixedStackSpanningBondingPlane) {
 // ─── Test 5: Burial warning ───────────────────────────────────────────────────
 
 TEST(BuildStack, BurialWarning) {
+    // First [[layer]] = top; reversed before accumulation.
     std::vector<RawLayer> raw;
-    raw.push_back(makeRaw(1, 0, 0.0,  100.0, "silicon", "base"));
-    // z_start=50 is below high_water=100 — burial
-    raw.push_back(makeRaw(2, 0, 50.0,  36.0, "metal",   "buried"));
+    // z_start=50 is below high_water=100 after base is processed — burial
+    raw.push_back(makeRaw(2, 0, 50.0,  36.0, "metal",   "buried")); // top
+    raw.push_back(makeRaw(1, 0, 0.0,  100.0, "silicon", "base"));   // bottom
 
     auto result = buildStack("TEST", "1.0", raw);
 
@@ -155,10 +159,11 @@ TEST(BuildStack, BurialWarning) {
 // ─── Test 6: Gap warning ──────────────────────────────────────────────────────
 
 TEST(BuildStack, GapWarning) {
+    // First [[layer]] = top; reversed before accumulation.
     std::vector<RawLayer> raw;
-    raw.push_back(makeRaw(1, 0, 0.0,   50.0, "silicon", "base"));
-    // z_start=200 is above high_water=50 — gap
-    raw.push_back(makeRaw(2, 0, 200.0, 36.0, "metal",   "floating"));
+    // z_start=200 is above high_water=50 after base is processed — gap
+    raw.push_back(makeRaw(2, 0, 200.0, 36.0, "metal",   "floating")); // top
+    raw.push_back(makeRaw(1, 0, 0.0,   50.0, "silicon", "base"));     // bottom
 
     auto result = buildStack("TEST", "1.0", raw);
 
