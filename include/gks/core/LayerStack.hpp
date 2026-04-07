@@ -135,10 +135,17 @@ struct RawLayer {
     std::optional<bool>    transparent;
 
     // PhysicalProps
-    std::optional<double>      z_start_nm;
+    std::optional<double>      z_start_nm;       // absent → accumulate; 0.0 → z anchor
     std::optional<double>      thickness_nm;
     std::optional<std::string> material;
     std::optional<std::string> layer_expression;
+
+    // Alignment (v0.4.2) — format: "layer_name:top" or "layer_name:bottom"
+    // align_bottom_to: snaps the BOTTOM of this layer to the named edge
+    // align_top_to:    snaps the TOP    of this layer to the named edge
+    // Mutually exclusive with explicit z_start_nm (ERROR if both present).
+    std::optional<std::string> align_bottom_to;
+    std::optional<std::string> align_top_to;
 
     int source_line = 0;
 };

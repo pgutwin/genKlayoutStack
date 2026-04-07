@@ -14,7 +14,8 @@
                     .lyp field mapping documented; zz() support confirmed for v1;
                     name-is-empty-in-lyp behavior documented
   - <2026-03-26> – Section 4.4 `<name>` is now optional; Section 5.3 `validate_identity()` - blank name now `[info]`
-
+  - <2026-03-27> – Corrected LayerStack.layers ordering note: stored in 
+                    physical bottom-to-top z order, not TOML document order
 ---
 
 ## 1. Project Overview
@@ -380,7 +381,10 @@ struct LayerEntry {
 //
 // Invariants:
 //   No two entries share the same (layer_num, datatype) pair.
-//   layers preserves TOML document order; sort-by-z at emit time only.
+//   layers is stored in physical bottom-to-top order (lowest z_start first).
+//   Writers iterate forward to produce output in ascending z order.
+//   TOML order (top of file = top of stack) is the input convention;
+//   the IR reversal is internal to buildStack().
 
 struct LayerStack {
     std::string             tech_name;

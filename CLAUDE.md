@@ -9,7 +9,7 @@ files for semiconductor process technology stacks. It reads and writes:
 - **Klayout layer properties file** (`.lyp`) — XML; display properties only
 - **Klayout 2.5D Ruby script** (`.rb`) — physical z-extrusion for 3D visualization
 
-The full design is in `docs/PROJECT_SPEC.md` (v0.4.1). Read that document first.
+The full design is in `docs/genKlayoutStack_project_spec_v0_4_1.md` (v0.4.1). Read that document first.
 This file tells you **how to implement it**.
 
 ---
@@ -36,7 +36,7 @@ genKlayoutStack/
   CMakeLists.txt
   CLAUDE.md                    ← this file
   docs/
-    PROJECT_SPEC.md            ← read this first
+    genKlayoutStack_project_spec_v0_4_1.md            ← read this first
   include/
     gks/
       core/

@@ -241,3 +241,321 @@ TEST(BuildStack, LayerExpressionPassthrough) {
     ASSERT_TRUE(layers[0].physical->layer_expression.has_value());
     EXPECT_EQ(*layers[0].physical->layer_expression, "input(4,0) + input(5,0)");
 }
+
+// ═════════════════════════════════════════════════════════════════════════════
+// v0.4.2 — two-pass accumulation + alignment resolution
+// ═════════════════════════════════════════════════════════════════════════════
+
+// ─── Test 10: Anchor in the middle of the file ────────────────────────────────
+// Layers above anchor → positive z (Pass 1).
+// Layers below anchor → negative z (Pass 2).
+
+TEST(BuildStack, AnchorInMiddle) {
+    // File order: m1 (top), poly (anchor, z=0), substrate (bottom)
+    std::vector<RawLayer> raw;
+    raw.push_back(makeRaw(3, 0, std::nullopt, 36.0,  "metal",   "m1"));       // above anchor
+    raw.push_back(makeRaw(2, 0, 0.0,         22.0,  "poly",    "poly"));      // anchor
+    raw.push_back(makeRaw(1, 0, std::nullopt, 300.0, "silicon", "substrate")); // below anchor
+
+    auto result = buildStack("TEST", "1.0", raw);
+    ASSERT_EQ(result.diagnostics.size() > 0u, true); // at least the anchor INFO
+    const auto& layers = result.stack.layers;
+    ASSERT_EQ(layers.size(), 3u);
+
+    // After sort: substrate(-300), poly(0), m1(22)
+    EXPECT_TRUE(approxEq(layers[0].physical->z_start_nm, -300.0)); // substrate
+    EXPECT_TRUE(approxEq(layers[1].physical->z_start_nm,    0.0)); // poly (anchor)
+    EXPECT_TRUE(approxEq(layers[2].physical->z_start_nm,   22.0)); // m1
+
+    // Anchor summary diagnostic should be emitted
+    EXPECT_TRUE(hasDiag(result.diagnostics, GksDiagnostic::Level::INFO, "Anchor layer"));
+}
+
+// ─── Test 11: No anchor — backward compatibility ──────────────────────────────
+// No layer has z_start_nm = 0.0 explicitly. The last layer becomes the implicit
+// anchor at z=0, and the whole stack accumulates upward: identical to v0.4.1.
+
+TEST(BuildStack, NoAnchorBackwardCompat) {
+    // File order: m0 (top), diffusion (bottom) — no explicit z=0 on either
+    std::vector<RawLayer> raw;
+    raw.push_back(makeRaw(2, 0, std::nullopt, 36.0, "metal",   "m0"));       // top
+    raw.push_back(makeRaw(1, 0, std::nullopt, 50.0, "silicon", "diffusion")); // bottom (anchor)
+
+    auto result = buildStack("TEST", "1.0", raw);
+    const auto& layers = result.stack.layers;
+
+    ASSERT_EQ(layers.size(), 2u);
+    // diffusion (last in file) → implicit anchor at z=0
+    EXPECT_TRUE(approxEq(layers[0].physical->z_start_nm,  0.0)); // diffusion
+    EXPECT_TRUE(approxEq(layers[1].physical->z_start_nm, 50.0)); // m0
+    // No anchor summary (anchor_found=false)
+    EXPECT_FALSE(hasDiag(result.diagnostics, GksDiagnostic::Level::INFO, "Anchor layer"));
+}
+
+// ─── Test 12: align_bottom_to — parallel group via alignment ─────────────────
+// Two layers both snap their bottom to poly:top → parallel group at z=22.
+
+TEST(BuildStack, AlignBottomTo) {
+    // File order (top to bottom): m0, epi, gate, poly (anchor), substrate
+    std::vector<RawLayer> raw;
+
+    RawLayer m0;
+    m0.layer_num = 6; m0.datatype = 0; m0.name = "m0";
+    m0.thickness_nm = 36.0; m0.material = "metal";
+    // no z_start → accumulated upward from hw after parallel group
+    raw.push_back(m0);
+
+    RawLayer epi;
+    epi.layer_num = 4; epi.datatype = 0; epi.name = "epi_contact";
+    epi.align_bottom_to = "poly:top";
+    epi.thickness_nm = 45.0; epi.material = "tungsten";
+    raw.push_back(epi);
+
+    RawLayer gate;
+    gate.layer_num = 5; gate.datatype = 0; gate.name = "gate_contact";
+    gate.align_bottom_to = "poly:top"; // same → parallel group
+    gate.thickness_nm = 30.0; gate.material = "tungsten";
+    raw.push_back(gate);
+
+    raw.push_back(makeRaw(3, 0, 0.0,         22.0,  "poly",    "poly"));      // anchor
+    raw.push_back(makeRaw(1, 0, std::nullopt, 300.0, "silicon", "substrate")); // below
+
+    auto result = buildStack("TEST", "1.0", raw);
+    ASSERT_TRUE(result.diagnostics.empty() == false);
+    const auto& layers = result.stack.layers;
+    ASSERT_EQ(layers.size(), 5u);
+
+    // Both epi_contact and gate_contact must resolve to poly:top = 0+22 = 22
+    bool found_epi = false, found_gate = false;
+    for (const auto& le : layers) {
+        if (le.name == "epi_contact") {
+            EXPECT_TRUE(approxEq(le.physical->z_start_nm, 22.0));
+            found_epi = true;
+        }
+        if (le.name == "gate_contact") {
+            EXPECT_TRUE(approxEq(le.physical->z_start_nm, 22.0));
+            found_gate = true;
+        }
+    }
+    EXPECT_TRUE(found_epi);
+    EXPECT_TRUE(found_gate);
+
+    // Parallel group should be detected
+    EXPECT_TRUE(hasDiag(result.diagnostics, GksDiagnostic::Level::INFO, "parallel group"));
+}
+
+// ─── Test 13: align_top_to — snap layer top to a reference edge ───────────────
+// gate_oxide sits just below poly: its top snaps to poly:bottom.
+// poly:bottom = 0 → gate_oxide.z_start = 0 - 5 = -5
+
+TEST(BuildStack, AlignTopTo) {
+    // File order: poly (anchor), gate_oxide (below anchor)
+    std::vector<RawLayer> raw;
+    raw.push_back(makeRaw(3, 0, 0.0, 22.0, "poly", "poly")); // anchor
+
+    RawLayer gox;
+    gox.layer_num = 2; gox.datatype = 0; gox.name = "gate_oxide";
+    gox.align_top_to = "poly:bottom"; // top snaps to poly's bottom edge (z=0)
+    gox.thickness_nm = 5.0; gox.material = "oxide";
+    raw.push_back(gox);
+
+    auto result = buildStack("TEST", "1.0", raw);
+    EXPECT_TRUE(result.diagnostics.size() > 0u);
+
+    bool found = false;
+    for (const auto& le : result.stack.layers) {
+        if (le.name == "gate_oxide") {
+            EXPECT_TRUE(approxEq(le.physical->z_start_nm, -5.0));
+            EXPECT_TRUE(approxEq(le.physical->thickness_nm, 5.0));
+            found = true;
+        }
+    }
+    EXPECT_TRUE(found) << "gate_oxide layer not found in result";
+}
+
+// ─── Test 14: Both alignments — thickness derived from span ───────────────────
+// gate_oxide: bottom snaps to poly:bottom (z=0), top snaps to m0:bottom (z=8).
+// Derived thickness = 8 - 0 = 8. No thickness_nm given → no warning.
+
+TEST(BuildStack, BothAlignmentsThicknessDerived) {
+    // poly (anchor, z=0, t=22), m0 (z=30, t=10), gate_oxide (aligned between)
+    // File order: m0, gate_oxide, poly (anchor)
+    std::vector<RawLayer> raw;
+
+    RawLayer m0_r;
+    m0_r.layer_num = 5; m0_r.datatype = 0; m0_r.name = "m0";
+    m0_r.z_start_nm = 30.0; m0_r.thickness_nm = 10.0; m0_r.material = "metal";
+    raw.push_back(m0_r);
+
+    RawLayer gox;
+    gox.layer_num = 2; gox.datatype = 0; gox.name = "gate_oxide";
+    gox.align_bottom_to = "poly:top";   // bottom = poly:top = 0+22 = 22
+    gox.align_top_to    = "m0:bottom";  // top    = m0:bottom = 30
+    // No thickness_nm → derived = 30 - 22 = 8
+    gox.material = "oxide";
+    raw.push_back(gox);
+
+    raw.push_back(makeRaw(3, 0, 0.0, 22.0, "poly", "poly")); // anchor
+
+    auto result = buildStack("TEST", "1.0", raw);
+    // No errors, no thickness-mismatch warning
+    EXPECT_FALSE(hasDiag(result.diagnostics, GksDiagnostic::Level::ERROR, ""));
+    EXPECT_FALSE(hasDiag(result.diagnostics, GksDiagnostic::Level::WARN, "thickness_nm"));
+
+    bool found = false;
+    for (const auto& le : result.stack.layers) {
+        if (le.name == "gate_oxide") {
+            EXPECT_TRUE(approxEq(le.physical->z_start_nm,  22.0));
+            EXPECT_TRUE(approxEq(le.physical->thickness_nm, 8.0));
+            found = true;
+        }
+    }
+    EXPECT_TRUE(found) << "gate_oxide not found";
+}
+
+// ─── Test 15: Both alignments — thickness mismatch emits WARN ────────────────
+
+TEST(BuildStack, BothAlignmentsThicknessMismatch) {
+    // Same as above but gate_oxide specifies thickness_nm=3.0 (derived is 8.0 → mismatch).
+    std::vector<RawLayer> raw;
+
+    RawLayer m0_r;
+    m0_r.layer_num = 5; m0_r.datatype = 0; m0_r.name = "m0";
+    m0_r.z_start_nm = 30.0; m0_r.thickness_nm = 10.0; m0_r.material = "metal";
+    raw.push_back(m0_r);
+
+    RawLayer gox;
+    gox.layer_num = 2; gox.datatype = 0; gox.name = "gate_oxide";
+    gox.align_bottom_to = "poly:top";
+    gox.align_top_to    = "m0:bottom";
+    gox.thickness_nm    = 3.0; // mismatch: derived = 8, given = 3
+    gox.material = "oxide";
+    raw.push_back(gox);
+
+    raw.push_back(makeRaw(3, 0, 0.0, 22.0, "poly", "poly"));
+
+    auto result = buildStack("TEST", "1.0", raw);
+    EXPECT_TRUE(hasDiag(result.diagnostics, GksDiagnostic::Level::WARN, "thickness_nm"));
+    // Derived thickness (8) is still used despite the warning
+    for (const auto& le : result.stack.layers) {
+        if (le.name == "gate_oxide") {
+            EXPECT_TRUE(approxEq(le.physical->thickness_nm, 8.0));
+        }
+    }
+}
+
+// ─── Test 16: align_* + z_start_nm → ERROR ───────────────────────────────────
+
+TEST(BuildStack, AlignAndZStartError) {
+    std::vector<RawLayer> raw;
+
+    RawLayer bad;
+    bad.layer_num = 1; bad.datatype = 0; bad.name = "bad_layer";
+    bad.align_bottom_to = "poly:top";
+    bad.z_start_nm = 50.0; // conflict
+    bad.thickness_nm = 10.0; bad.material = "metal";
+    raw.push_back(bad);
+
+    raw.push_back(makeRaw(2, 0, 0.0, 22.0, "poly", "poly"));
+
+    auto result = buildStack("TEST", "1.0", raw);
+    EXPECT_TRUE(hasDiag(result.diagnostics, GksDiagnostic::Level::ERROR, "mutually exclusive"));
+}
+
+// ─── Test 17: Circular alignment reference → ERROR ────────────────────────────
+
+TEST(BuildStack, CircularReferenceError) {
+    std::vector<RawLayer> raw;
+
+    RawLayer a;
+    a.layer_num = 1; a.datatype = 0; a.name = "layerA";
+    a.align_bottom_to = "layerB:top";
+    a.thickness_nm = 10.0; a.material = "metal";
+    raw.push_back(a);
+
+    RawLayer b;
+    b.layer_num = 2; b.datatype = 0; b.name = "layerB";
+    b.align_bottom_to = "layerA:top"; // A → B → A
+    b.thickness_nm = 10.0; b.material = "metal";
+    raw.push_back(b);
+
+    auto result = buildStack("TEST", "1.0", raw);
+    EXPECT_TRUE(hasDiag(result.diagnostics, GksDiagnostic::Level::ERROR, "circular"));
+}
+
+// ─── Test 18: Unknown alignment reference → ERROR ─────────────────────────────
+
+TEST(BuildStack, UnknownReferenceError) {
+    std::vector<RawLayer> raw;
+
+    RawLayer a;
+    a.layer_num = 1; a.datatype = 0; a.name = "layerA";
+    a.align_bottom_to = "nonexistent:top";
+    a.thickness_nm = 10.0; a.material = "metal";
+    raw.push_back(a);
+
+    auto result = buildStack("TEST", "1.0", raw);
+    EXPECT_TRUE(hasDiag(result.diagnostics, GksDiagnostic::Level::ERROR, "not found in stack"));
+}
+
+// ─── Test 19: Alignment reference to a layer in the upward pass ───────────────
+// m1 aligns its bottom to m0:top; m0 has explicit z=50 (pre-resolved).
+// Both m1 and m0 are in the upward region (above the anchor poly).
+
+TEST(BuildStack, AlignmentInUpwardPass) {
+    // File order: m1 (aligned), m0 (explicit z), poly (anchor), substrate
+    std::vector<RawLayer> raw;
+
+    RawLayer m1;
+    m1.layer_num = 4; m1.datatype = 0; m1.name = "m1";
+    m1.align_bottom_to = "m0:top"; // m0:top = 50 + 10 = 60
+    m1.thickness_nm = 36.0; m1.material = "metal";
+    raw.push_back(m1);
+
+    raw.push_back(makeRaw(3, 0, 50.0, 10.0, "metal",   "m0"));       // explicit z=50
+    raw.push_back(makeRaw(2, 0,  0.0, 22.0, "poly",    "poly"));     // anchor
+    raw.push_back(makeRaw(1, 0, std::nullopt, 300.0, "silicon", "substrate")); // below
+
+    auto result = buildStack("TEST", "1.0", raw);
+    EXPECT_FALSE(hasDiag(result.diagnostics, GksDiagnostic::Level::ERROR, ""));
+
+    bool found = false;
+    for (const auto& le : result.stack.layers) {
+        if (le.name == "m1") {
+            EXPECT_TRUE(approxEq(le.physical->z_start_nm, 60.0)); // m0:top = 50+10
+            found = true;
+        }
+    }
+    EXPECT_TRUE(found) << "m1 not found";
+}
+
+// ─── Test 20: Alignment reference to a layer in the downward pass ─────────────
+// bm1 aligns its bottom to bm0:top; bm0 has explicit negative z (pre-resolved).
+// Both bm1 and bm0 are in the downward region (below the anchor poly).
+
+TEST(BuildStack, AlignmentInDownwardPass) {
+    // File order: poly (anchor), bm0 (explicit z=-300), bm1 (aligned to bm0:top)
+    std::vector<RawLayer> raw;
+
+    raw.push_back(makeRaw(3, 0, 0.0, 22.0, "poly", "poly")); // anchor
+
+    raw.push_back(makeRaw(2, 0, -300.0, 50.0, "metal", "bm0")); // explicit z=-300
+
+    RawLayer bm1;
+    bm1.layer_num = 1; bm1.datatype = 0; bm1.name = "bm1";
+    bm1.align_bottom_to = "bm0:top"; // bm0:top = -300 + 50 = -250
+    bm1.thickness_nm = 30.0; bm1.material = "metal";
+    raw.push_back(bm1);
+
+    auto result = buildStack("TEST", "1.0", raw);
+    EXPECT_FALSE(hasDiag(result.diagnostics, GksDiagnostic::Level::ERROR, ""));
+
+    bool found = false;
+    for (const auto& le : result.stack.layers) {
+        if (le.name == "bm1") {
+            EXPECT_TRUE(approxEq(le.physical->z_start_nm, -250.0)); // bm0:top
+            found = true;
+        }
+    }
+    EXPECT_TRUE(found) << "bm1 not found";
+}

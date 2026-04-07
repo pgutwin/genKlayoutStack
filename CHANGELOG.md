@@ -14,6 +14,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+## [n/a] 7 April 2026
+
+### Changed
+- Major change to TOML file keywords for Z hight defnintion:
+	- Added `align_bottom_to` and `alighn_top_to` keywords to assist with snapping
+	- Allows arbirary placement of `z_start_nm = 0.0` in the stack, and accumulates both negative and postive high water marks
+- Updated documentation and alignment with spec versions
+- Updated code version (in CMake).
+
 ## [n/a] 6 April 2026
 
 ### Changed
