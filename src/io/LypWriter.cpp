@@ -20,7 +20,7 @@ std::expected<void, GksError> writeLyp(const LayerStack& stack, const std::strin
 
     pugi::xml_node root = doc.append_child("layer-properties");
 
-    for (const LayerEntry& entry : stack.layers) {
+    for (auto it = stack.layers.rbegin(); it != stack.layers.rend(); ++it) { const LayerEntry& entry = *it;
         pugi::xml_node prop = root.append_child("properties");
         const DisplayProps& d = entry.display;
 

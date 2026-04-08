@@ -159,31 +159,34 @@ TEST(LypRoundtrip, WriteReadPreservesFields) {
 
     ASSERT_EQ(back.layers.size(), 2u);
 
-    // Layer 0
-    EXPECT_EQ(back.layers[0].layer_num, 3);
-    EXPECT_EQ(back.layers[0].datatype,  0);
-    EXPECT_EQ(back.layers[0].name,      "poly");
-    EXPECT_EQ(back.layers[0].display.fill_color,  e1.display.fill_color);
-    EXPECT_EQ(back.layers[0].display.frame_color, e1.display.frame_color);
-    EXPECT_EQ(back.layers[0].display.dither_pattern, 9);
-    EXPECT_EQ(back.layers[0].display.line_style,  -1);
-    EXPECT_TRUE(back.layers[0].display.valid);
-    EXPECT_TRUE(back.layers[0].display.visible);
-    EXPECT_FALSE(back.layers[0].display.transparent);
-    EXPECT_FALSE(back.layers[0].display.width.has_value());
+    // Writer reverses layer order; e2 (last in orig) is first in .lyp
+    // Layer 0 in readback = e2
+    EXPECT_EQ(back.layers[0].layer_num, 7);
+    EXPECT_EQ(back.layers[0].datatype,  1);
+    EXPECT_EQ(back.layers[0].name,      "");
+    EXPECT_EQ(back.layers[0].display.fill_color,  e2.display.fill_color);
+    EXPECT_EQ(back.layers[0].display.frame_color, e2.display.frame_color);
+    EXPECT_EQ(back.layers[0].display.dither_pattern, 5);
+    EXPECT_EQ(back.layers[0].display.line_style,     3);
+    EXPECT_FALSE(back.layers[0].display.visible);
+    EXPECT_TRUE(back.layers[0].display.transparent);
+    ASSERT_TRUE(back.layers[0].display.width.has_value());
+    EXPECT_EQ(*back.layers[0].display.width, 2);
+    EXPECT_TRUE(back.layers[0].display.expanded);
     EXPECT_FALSE(back.layers[0].physical.has_value());
 
-    // Layer 1
-    EXPECT_EQ(back.layers[1].layer_num, 7);
-    EXPECT_EQ(back.layers[1].datatype,  1);
-    EXPECT_EQ(back.layers[1].name,      "");
-    EXPECT_EQ(back.layers[1].display.dither_pattern, 5);
-    EXPECT_EQ(back.layers[1].display.line_style,     3);
-    EXPECT_FALSE(back.layers[1].display.visible);
-    EXPECT_TRUE(back.layers[1].display.transparent);
-    ASSERT_TRUE(back.layers[1].display.width.has_value());
-    EXPECT_EQ(*back.layers[1].display.width, 2);
-    EXPECT_TRUE(back.layers[1].display.expanded);
+    // Layer 1 in readback = e1
+    EXPECT_EQ(back.layers[1].layer_num, 3);
+    EXPECT_EQ(back.layers[1].datatype,  0);
+    EXPECT_EQ(back.layers[1].name,      "poly");
+    EXPECT_EQ(back.layers[1].display.fill_color,  e1.display.fill_color);
+    EXPECT_EQ(back.layers[1].display.frame_color, e1.display.frame_color);
+    EXPECT_EQ(back.layers[1].display.dither_pattern, 9);
+    EXPECT_EQ(back.layers[1].display.line_style,  -1);
+    EXPECT_TRUE(back.layers[1].display.valid);
+    EXPECT_TRUE(back.layers[1].display.visible);
+    EXPECT_FALSE(back.layers[1].display.transparent);
+    EXPECT_FALSE(back.layers[1].display.width.has_value());
 
     std::filesystem::remove(tmp);
 }

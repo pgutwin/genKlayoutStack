@@ -14,6 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+## [n/a] 8 April 2026
+
+### Changed
+- Changed the order that .LYP was generated, now matching order in TOML
+
 ## [n/a] 7 April 2026
 
 ### Changed

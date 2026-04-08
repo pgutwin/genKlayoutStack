@@ -163,19 +163,22 @@ TEST_F(LypRoundtripTest, LayerCountPreserved) {
 }
 
 TEST_F(LypRoundtripTest, LayerKeysPreserved) {
-    for (size_t i = 0; i < orig.layers.size(); ++i) {
+    const size_t n = orig.layers.size();
+    for (size_t i = 0; i < n; ++i) {
         SCOPED_TRACE("layer index " + std::to_string(i));
-        EXPECT_EQ(back.layers[i].layer_num, orig.layers[i].layer_num);
-        EXPECT_EQ(back.layers[i].datatype,  orig.layers[i].datatype);
-        // name is preserved through lyp writer/reader
-        EXPECT_EQ(back.layers[i].name,      orig.layers[i].name);
+        // Writer reverses layer order; reader restores document order,
+        // so back.layers[i] corresponds to orig.layers[n-1-i].
+        EXPECT_EQ(back.layers[i].layer_num, orig.layers[n-1-i].layer_num);
+        EXPECT_EQ(back.layers[i].datatype,  orig.layers[n-1-i].datatype);
+        EXPECT_EQ(back.layers[i].name,      orig.layers[n-1-i].name);
     }
 }
 
 TEST_F(LypRoundtripTest, DisplayPropsPreserved) {
-    for (size_t i = 0; i < orig.layers.size(); ++i) {
+    const size_t n = orig.layers.size();
+    for (size_t i = 0; i < n; ++i) {
         SCOPED_TRACE("layer index " + std::to_string(i));
-        const auto& d1 = orig.layers[i].display;
+        const auto& d1 = orig.layers[n-1-i].display;
         const auto& d2 = back.layers[i].display;
         EXPECT_EQ(d2.fill_color,      d1.fill_color);
         EXPECT_EQ(d2.frame_color,     d1.frame_color);
