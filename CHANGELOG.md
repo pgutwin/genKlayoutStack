@@ -19,6 +19,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Changed the order that .LYP was generated, now matching order in TOML
 
+### Fixed
+- Bug in TOML reader - not parsing `align_top_to` and `align_bottom_to` properly
+
 ## [n/a] 7 April 2026
 
 ### Changed

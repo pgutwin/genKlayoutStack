@@ -2,6 +2,7 @@
 #include "gks/io/TomlReader.hpp"
 #include "gks/core/LayerStack.hpp"
 
+#include <fstream>
 #include <string>
 
 // GKS_FIXTURES_DIR is defined by CMake as a compile-time constant
@@ -145,6 +146,223 @@ TEST_F(TomlReaderTest, SourceLineIsPopulated) {
             << "Expected non-zero source_line for layer "
             << raw.layer_num.value_or(-1);
     }
+}
+
+// ── Alignment keyword parsing ───────────────────────────────────────────────
+
+TEST(TomlReaderAlignment, AlignFieldsParsedCorrectly) {
+    // Write a minimal TOML with alignment keywords to a temp file.
+    const std::string path = "/tmp/gks_align_test.toml";
+    {
+        std::ofstream f(path);
+        ASSERT_TRUE(f.is_open());
+        f << R"toml(
+[stack]
+tech_name = "test"
+version   = "0.0.1"
+
+[[layer]]
+name             = "gate_oxide"
+layer_num        = 2
+datatype         = 0
+fill_color       = "#FFFF00"
+frame_color      = "#CCCC00"
+align_bottom_to  = "substrate:top"
+align_top_to     = "poly:bottom"
+thickness_nm     = 5.0
+material         = "oxide"
+
+[[layer]]
+name         = "substrate"
+layer_num    = 0
+datatype     = 0
+fill_color   = "#888888"
+frame_color  = "#555555"
+z_start_nm   = -300.0
+thickness_nm = 300.0
+material     = "silicon"
+)toml";
+    }
+
+    auto result = gks::readToml(path);
+    ASSERT_TRUE(result.has_value()) << result.error().message;
+    ASSERT_EQ(result->layers.size(), 2u);
+
+    // Layer 0: gate_oxide — both alignment fields present
+    const auto& gate_oxide = result->layers[0];
+    ASSERT_TRUE(gate_oxide.align_bottom_to.has_value());
+    EXPECT_EQ(*gate_oxide.align_bottom_to, "substrate:top");
+    ASSERT_TRUE(gate_oxide.align_top_to.has_value());
+    EXPECT_EQ(*gate_oxide.align_top_to, "poly:bottom");
+
+    // Layer 1: substrate — no alignment fields
+    const auto& substrate = result->layers[1];
+    EXPECT_FALSE(substrate.align_bottom_to.has_value());
+    EXPECT_FALSE(substrate.align_top_to.has_value());
+}
+
+TEST(TomlReaderAlignment, OnlyAlignBottomTo) {
+    const std::string path = "/tmp/gks_align_bottom_only.toml";
+    {
+        std::ofstream f(path);
+        ASSERT_TRUE(f.is_open());
+        f << R"toml(
+[stack]
+tech_name = "test"
+version   = "0.0.1"
+
+[[layer]]
+name             = "via"
+layer_num        = 3
+datatype         = 0
+fill_color       = "#0000FF"
+frame_color      = "#0000CC"
+align_bottom_to  = "m0:top"
+thickness_nm     = 10.0
+material         = "tungsten"
+)toml";
+    }
+
+    auto result = gks::readToml(path);
+    ASSERT_TRUE(result.has_value()) << result.error().message;
+    ASSERT_EQ(result->layers.size(), 1u);
+
+    const auto& via = result->layers[0];
+    ASSERT_TRUE(via.align_bottom_to.has_value());
+    EXPECT_EQ(*via.align_bottom_to, "m0:top");
+    EXPECT_FALSE(via.align_top_to.has_value());
+}
+
+TEST(TomlReaderAlignment, OnlyAlignTopTo) {
+    const std::string path = "/tmp/gks_align_top_only.toml";
+    {
+        std::ofstream f(path);
+        ASSERT_TRUE(f.is_open());
+        f << R"toml(
+[stack]
+tech_name = "test"
+version   = "0.0.1"
+
+[[layer]]
+name         = "cap"
+layer_num    = 4
+datatype     = 0
+fill_color   = "#FF0000"
+frame_color  = "#CC0000"
+align_top_to = "m1:bottom"
+thickness_nm = 8.0
+material     = "nitride"
+)toml";
+    }
+
+    auto result = gks::readToml(path);
+    ASSERT_TRUE(result.has_value()) << result.error().message;
+    ASSERT_EQ(result->layers.size(), 1u);
+
+    const auto& cap = result->layers[0];
+    EXPECT_FALSE(cap.align_bottom_to.has_value());
+    ASSERT_TRUE(cap.align_top_to.has_value());
+    EXPECT_EQ(*cap.align_top_to, "m1:bottom");
+}
+
+TEST(TomlReaderAlignment, BothAlignFields) {
+    const std::string path = "/tmp/gks_align_both.toml";
+    {
+        std::ofstream f(path);
+        ASSERT_TRUE(f.is_open());
+        f << R"toml(
+[stack]
+tech_name = "test"
+version   = "0.0.1"
+
+[[layer]]
+name             = "oxide"
+layer_num        = 5
+datatype         = 0
+fill_color       = "#FFFF00"
+frame_color      = "#CCCC00"
+align_bottom_to  = "sub:top"
+align_top_to     = "gate:bottom"
+thickness_nm     = 5.0
+material         = "oxide"
+)toml";
+    }
+
+    auto result = gks::readToml(path);
+    ASSERT_TRUE(result.has_value()) << result.error().message;
+    ASSERT_EQ(result->layers.size(), 1u);
+
+    const auto& oxide = result->layers[0];
+    ASSERT_TRUE(oxide.align_bottom_to.has_value());
+    EXPECT_EQ(*oxide.align_bottom_to, "sub:top");
+    ASSERT_TRUE(oxide.align_top_to.has_value());
+    EXPECT_EQ(*oxide.align_top_to, "gate:bottom");
+}
+
+TEST(TomlReaderAlignment, NeitherAlignField) {
+    const std::string path = "/tmp/gks_align_neither.toml";
+    {
+        std::ofstream f(path);
+        ASSERT_TRUE(f.is_open());
+        f << R"toml(
+[stack]
+tech_name = "test"
+version   = "0.0.1"
+
+[[layer]]
+name         = "metal"
+layer_num    = 6
+datatype     = 0
+fill_color   = "#00FF00"
+frame_color  = "#00CC00"
+z_start_nm   = 100.0
+thickness_nm = 36.0
+material     = "copper"
+)toml";
+    }
+
+    auto result = gks::readToml(path);
+    ASSERT_TRUE(result.has_value()) << result.error().message;
+    ASSERT_EQ(result->layers.size(), 1u);
+
+    const auto& metal = result->layers[0];
+    EXPECT_FALSE(metal.align_bottom_to.has_value());
+    EXPECT_FALSE(metal.align_top_to.has_value());
+}
+
+TEST(TomlReaderAlignment, TypoAlignTopTopDoesNotMatchAlignTopTo) {
+    // "align_top_top" (13 chars) must NOT populate align_top_to.
+    // The first 12 chars of "align_top_top" equal "align_top_to", so a
+    // strncmp-based lookup would falsely match — verify exact matching holds.
+    const std::string path = "/tmp/gks_align_typo_top.toml";
+    {
+        std::ofstream f(path);
+        ASSERT_TRUE(f.is_open());
+        f << R"toml(
+[stack]
+tech_name = "test"
+version   = "0.0.1"
+
+[[layer]]
+name          = "typo_layer"
+layer_num     = 99
+datatype      = 0
+fill_color    = "#0000FF"
+frame_color   = "#0000CC"
+align_top_top = "m1:bottom"
+thickness_nm  = 8.0
+material      = "nitride"
+)toml";
+    }
+
+    auto result = gks::readToml(path);
+    ASSERT_TRUE(result.has_value()) << result.error().message;
+    ASSERT_EQ(result->layers.size(), 1u);
+
+    const auto& layer = result->layers[0];
+    EXPECT_FALSE(layer.align_top_to.has_value())
+        << "align_top_top must not populate align_top_to";
+    EXPECT_FALSE(layer.align_bottom_to.has_value());
 }
 
 // ── Error handling ──────────────────────────────────────────────────────────

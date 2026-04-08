@@ -91,6 +91,21 @@ std::expected<TomlReadResult, GksError> readToml(const std::string& path) {
                 raw.material = *v;
             if (auto v = (*layer_tbl)["layer_expression"].value<std::string>())
                 raw.layer_expression = *v;
+            // Alignment fields: iterate with std::string_view::operator== to
+            // guarantee exact key matching.  toml++'s operator[] may use
+            // strncmp(stored, search, search.size()), which would make
+            // "align_top_top" (13 chars) falsely match "align_top_to" (12 chars)
+            // because their first 12 characters are identical.
+            for (auto& [k, knode] : *layer_tbl) {
+                std::string_view kv = k.str();
+                if (kv == "align_bottom_to") {
+                    if (auto v = knode.value<std::string>())
+                        raw.align_bottom_to = *v;
+                } else if (kv == "align_top_to") {
+                    if (auto v = knode.value<std::string>())
+                        raw.align_top_to = *v;
+                }
+            }
 
             result.layers.push_back(std::move(raw));
         }
